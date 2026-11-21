@@ -27,6 +27,22 @@ const parsed = JSON.parse(data);
 if (typeof parsed !== "object" || parsed === null || typeof parsed.url !== "string") {
   throw new Error("VIDEO.json must be an object with a url string");
 }
+if (parsed.url.trim() === "") {
+  throw new Error("VIDEO.json url must not be empty");
+}
+let videoUrl;
+try {
+  videoUrl = new URL(parsed.url);
+} catch {
+  throw new Error("VIDEO.json url is not a valid URL: " + parsed.url);
+}
+const host = videoUrl.hostname.replace(/^www\./, "");
+if (host !== "youtube.com" && host !== "youtu.be") {
+  throw new Error(
+    "VIDEO.json url must point to youtube.com or youtu.be, got: " + videoUrl.hostname,
+  );
+}
 
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "VIDEO.json"), data);
+console.log("Wrote VIDEO.json for " + videoUrl.href + " to " + outDir);
